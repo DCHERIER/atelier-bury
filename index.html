@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atelier de fin d'année - Lycée Notre-Dame de Bury</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --purple: #7c3aed;
+            --orange: #ea580c;
+            --bg-light: #f1f5f9;
+            --text-dark: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body { background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 10px; }
+
+        .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); background: white; border: 1px solid var(--border-color); width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: all 0.2s ease; color: var(--primary); font-size: 1.4rem; }
+        .nav-arrow:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-arrow.left { left: 25px; }
+        .nav-arrow.right { right: 25px; }
+        .nav-arrow.disabled { opacity: 0.15; cursor: not-allowed; pointer-events: none; }
+
+        .page { display: none; max-width: 1200px; width: 100%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); min-height: 620px; position: relative; flex-direction: column; z-index: 10; }
+        .page.active { display: flex; }
+
+        .slide-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.7rem; font-weight: bold; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; gap: 10px; }
+        .slide-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; color: #94a3b8; font-size: 0.8rem; }
+
+        .mobile-nav-container { display: none; gap: 12px; width: 100%; margin-top: 15px; }
+        .btn-nav-mob { flex: 1; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color); background: white; color: var(--primary); font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-nav-mob.next { background: var(--primary); color: white; border-color: var(--primary); }
+
+        h1 { font-size: 2rem; margin-bottom: 10px; color: #0f172a; line-height: 1.2; }
+        h2 { font-size: 1.5rem; margin-bottom: 5px; color: #0f172a; }
+        .subtitle { color: #64748b; margin-bottom: 15px; font-size: 0.95rem; }
+
+        /* --- AJUSTEMENTS MOBILE CIBLÉS --- */
+        @media (max-width: 992px) {
+            body { padding: 2px; }
+            .nav-arrow { display: none !important; }
+            .mobile-nav-container { display: flex; }
+            .page { padding: 12px; min-height: 95vh; border-radius: 12px; box-shadow: none; }
+            .slide-header { margin-bottom: 8px; font-size: 0.65rem; opacity: 0.8; }
+            h1 { font-size: 1.4rem; margin-bottom: 8px; }
+            h2 { font-size: 1.2rem; }
+            .subtitle { font-size: 0.8rem; margin-bottom: 10px; }
+            .btn-nav-mob { padding: 12px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-application-wrapper">
+        </div>
+
+    <script>
+        // Vos scripts restent identiques
+    </script>
+</body>
+</html>
