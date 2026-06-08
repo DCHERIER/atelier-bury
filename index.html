@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atelier de fin d'année - Lycée Notre-Dame de Bury</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --primary: #0284c7; --purple: #7c3aed; --orange: #ea580c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: sans-serif; background-color: #f1f5f9; min-height: 100vh; overflow-x: hidden; }
+
+        .page { display: none; width: 100%; padding: 15px; min-height: 100vh; background: white; }
+        .page.active { display: block; }
+
+        /* Page 5 optimisée */
+        #page5 { padding-top: 10px; }
+        .p5-chart-container { position: sticky; top: 0; z-index: 100; background: white; padding: 10px 0; border-bottom: 2px solid #f1f5f9; }
+        .slider-group { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .slider-group label { font-weight: bold; font-size: 0.9rem; }
+        .slider-controls-row { display: flex; align-items: center; gap: 10px; }
+        .slider-group input[type="range"] { flex: 1; height: 30px; }
+        
+        .btn-nav { width: 100%; padding: 15px; margin-top: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="pages-container">
+        <div id="page5" class="page active">
+            <h2>Evaluation</h2>
+            <div class="p5-chart-container"><canvas id="radarChart"></canvas></div>
+            <div id="sliders-area"></div>
+            <button class="btn-nav" onclick="alert('Page suivante')">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        const dataCriteria = [
+            { id: 1, label: "1. Organisation générale", val: 5 },
+            { id: 2, label: "2. Calendrier DST", val: 5 },
+            { id: 3, label: "3. Communication Direction", val: 5 }
+            // Ajoutez les autres ici
+        ];
+
+        function initSliders() {
+            const container = document.getElementById('sliders-area');
+            dataCriteria.forEach(item => {
+                const group = document.createElement('div');
+                group.className = 'slider-group';
+                group.innerHTML = `
+                    <label>${item.label}</label>
+                    <div class="slider-controls-row">
+                        <input type="range" min="0" max="10" value="${item.val}" oninput="updateChart(this, ${item.id})">
+                        <span>${item.val}</span>
+                    </div>
+                `;
+                container.appendChild(group);
+            });
+        }
+
+        // Initialisation du radar
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        const radar = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: dataCriteria.map(i => i.label),
+                datasets: [{ data: dataCriteria.map(i => i.val), borderColor: '#0284c7' }]
+            }
+        });
+
+        function updateChart(input, id) {
+            // Logique de mise à jour du graphique
+            radar.data.datasets[0].data[id-1] = input.value;
+            radar.update();
+        }
+
+        initSliders();
+    </script>
+</body>
+</html>
