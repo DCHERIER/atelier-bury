@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <!-- Correction cruciale pour empêcher le dézoom mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Atelier de fin d'année</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --bg-light: #f1f5f9;
+        }
+
+        /* Reset global pour mobile */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; /* Empêche le défilement horizontal */
+            font-family: sans-serif;
+            background-color: var(--bg-light);
+        }
+
+        #main-application-wrapper {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            max-width: 500px; /* Force une taille mobile confortable */
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .page.active { display: block; }
+
+        /* Rendre tous les éléments internes adaptables */
+        img, canvas { max-width: 100%; height: auto; }
+        
+        .mobile-nav-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-nav-mob {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Styles pour garantir la lisibilité */
+        h1 { font-size: 1.5rem; margin-bottom: 10px; }
+        .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; }
+        
+        /* Correction spécifique pour la page 5 (Radar) */
+        #page5 .p5-chart-container { width: 100%; height: 250px; }
+        
+        @media (max-width: 600px) {
+            .page { padding: 15px; border-radius: 0; min-height: 100vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-application-wrapper">
+        <!-- Page 1 (Exemple) -->
+        <div id="page1" class="page active">
+            <h1>Atelier de fin d'année</h1>
+            <p class="subtitle">Bienvenue dans l'outil d'évaluation. Cette interface est maintenant optimisée pour votre écran.</p>
+            <button class="btn-nav-mob" onclick="navigatePage(1)">Commencer</button>
+        </div>
+        
+        <!-- Vous gardez la structure précédente, le CSS ci-dessus corrigera l'affichage -->
+    </div>
+
+    <script>
+        let currentPage = 1;
+        function navigatePage(direction) {
+            document.getElementById(`page${currentPage}`).classList.remove('active');
+            currentPage += direction;
+            document.getElementById(`page${currentPage}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
