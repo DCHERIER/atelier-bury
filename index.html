@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atelier de fin d'année - Lycée Notre-Dame de Bury</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --purple: #7c3aed;
+            --orange: #ea580c;
+            --bg-light: #f1f5f9;
+            --text-dark: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Navigation par flèches (PC uniquement) */
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 1px solid var(--border-color);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            color: var(--primary);
+            font-size: 1.4rem;
+        }
+        .nav-arrow:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-arrow.left { left: 25px; }
+        .nav-arrow.right { right: 25px; }
+        .nav-arrow.disabled { opacity: 0.15; cursor: not-allowed; pointer-events: none; }
+
+        /* Conteneur de pages de l'application */
+        .page {
+            display: none;
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            min-height: 620px;
+            position: relative;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .page.active { display: flex; }
+
+        /* En-tête style Diapositive */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            gap: 10px;
+        }
+
+        /* Pied de page */
+        .slide-footer {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            gap: 10px;
+        }
+
+        /* Boutons de navigation bas de page (Crucial Mobile) */
+        .mobile-nav-container {
+            display: none;
+            gap: 12px;
+            width: 100%;
+            margin-top: 15px;
+            z-index: 110;
+        }
+        .btn-nav-mob {
+            flex: 1;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-nav-mob:active { background: #f8fafc; }
+        .btn-nav-mob.next { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Typographies */
+        h1 { font-size: 2rem; margin-bottom: 10px; color: #0f172a; line-height: 1.2; }
+        h2 { font-size: 1.5rem; margin-bottom: 5px; color: #0f172a; }
+        .subtitle { color: #64748b; margin-bottom: 15px; font-size: 0.95rem; line-height: 1.4; }
+        .badge-bury { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: inline-block;}
+
+		/* PAGE 1: Accueil */
+		.p1-layout { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            flex: 1; 
+        }
+        .p1-content { max-width: 800px; }
+
+        /* PAGE 2 : Guide */
+        .steps-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .step-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; background: #f8fafc; }
+        .step-num { font-size: 1.8rem; font-weight: 800; color: #cbd5e1; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .step-time { font-size: 0.7rem; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 20px; font-weight: bold; }
+
+        /* PAGE 3 : Le Groupe */
+        .group-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .group-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 100%; max-width: 500px; display: grid; gap: 10px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 15px; color: var(--primary); font-size: 1rem; }
+        .group-card input { width: 100%; padding: 12px 15px 12px 42px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; }
+        .group-card input:focus { border-color: var(--primary); outline: none; background: white; }
+
+        /* PAGE 4 : Structure */
+        .struct-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .struct-card { padding: 15px; border-radius: 12px; border-top: 5px solid; background: #f8fafc; }
+        .struct-card.c1 { border-top-color: var(--primary); background: #f0f9ff; }
+        .struct-card.c2 { border-top-color: var(--purple); background: #f5f3ff; }
+        .struct-card.c3 { border-top-color: var(--orange); background: #fff7ed; }
+        .struct-card h3 { margin-bottom: 10px; font-size: 1rem; }
+        .struct-card ul { list-style: none; line-height: 1.8; font-size: 0.85rem; }
+
+        /* =======================================================
+           PAGE 5 : TOILE REVOLUTIONNAIRE OPTIMISÉE MOBILE
+           ======================================================= */
+        .p5-layout { display: flex; gap: 25px; align-items: flex-start; margin-top: 5px; }
+        
+        .p5-chart-container { 
+            flex: 1; 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 16px; 
+            max-width: 380px; 
+            position: relative;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .p5-sliders { 
+            flex: 1.3; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            max-height: 480px; 
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        /* Groupement thématique des curseurs */
+        .slider-category-block {
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .slider-category-block.b-org { background: #f0f9ff; border: 1px solid #bde1ff; }
+        .slider-category-block.b-com { background: #f5f3ff; border: 1px solid #ddd6fe; }
+        .slider-category-block.b-cad { background: #fff7ed; border: 1px solid #fed7aa; }
+        
+        .slider-category-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .b-org .slider-category-title { color: #0369a1; }
+        .b-com .slider-category-title { color: #6d28d9; }
+        .b-cad .slider-category-title { color: #c2410c; }
+
+        .slider-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            background: white; 
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        .slider-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .slider-group label { 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: #334155;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        
+        .slider-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-group input[type="range"] { 
+            flex: 1; 
+            accent-color: var(--primary); 
+            height: 8px; /* Plus épais pour le tactile */
+            cursor: pointer; 
+        }
+        
+        .b-org input[type="range"] { accent-color: var(--primary); }
+        .b-com input[type="range"] { accent-color: var(--purple); }
+        .b-cad input[type="range"] { accent-color: var(--orange); }
+
+        .slider-group .val-indicator { 
+            font-weight: 800; 
+            font-size: 1rem; 
+            min-width: 24px;
+            text-align: right;
+        }
+        .b-org .val-indicator { color: var(--primary); }
+        .b-com .val-indicator { color: var(--purple); }
+        .b-cad .val-indicator { color: var(--orange); }
+
+        /* TABLES DE SYNTHÈSE (Wrappers défilement mobile) */
+        .table-responsive-wrapper { width: 100%; overflow-x: auto; margin-top: 10px; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .table-synth { width: 100%; border-collapse: collapse; min-width: 550px; }
+        .table-synth th { background: #f1f5f9; padding: 10px; border: 1px solid #e2e8f0; font-size: 0.75rem; text-transform: uppercase; color: #475569; text-align: left; }
+        .table-synth td { padding: 8px; border: 1px solid #e2e8f0; vertical-align: top; background: white; }
+        .table-synth input[type="number"] { width: 45px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.9rem; }
+        .table-synth textarea { width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 8px; resize: none; height: 45px; font-size: 0.85rem; }
+
+        /* PAGE 9 : RESTITUTION GLOBALE */
+        .p9-content-wrapper { flex: 1; display: flex; flex-direction: column; }
+        .p9-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex: 1; }
+        .p9-card { border-radius: 12px; padding: 15px; border-top: 5px solid; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        .p9-card.success { border-top-color: #22c55e; background: #f0fdf4; }
+        .p9-card.warning { border-top-color: #ef4444; background: #fef2f2; }
+        .p9-card h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 1.1rem; }
+        .p9-card textarea { width: 100%; flex: 1; min-height: 60px; margin-top: 6px; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; resize: none; font-size: 0.85rem; }
+        .char-counter { font-size: 0.7rem; color: #94a3b8; text-align: right; margin-top: 2px; }
+
+        /* PAGE 10 : Transmission */
+        .final-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px 0; }
+        .btn-send { background: #22c55e; color: white; border: none; padding: 14px 25px; font-size: 1.05rem; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 12px rgba(34, 197, 94, 0.2); display: flex; align-items: center; gap: 10px; max-width: 100%; }
+        .btn-send:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        #status-message { margin-top: 15px; font-weight: bold; font-size: 0.95rem; display: none; }
+        .success-msg { color: #16a34a; background: #f0fdf4; padding: 10px 15px; border-radius: 8px; border: 1px solid #22c55e; }
+
+        /* ==========================================
+           RESPONSIVE DESIGN (PROPRE ET ULTRA-FLUIDE)
+           ========================================== */
+        @media (max-width: 992px) {
+            body { padding: 5px; }
+            .nav-arrow { display: none !important; }
+            .mobile-nav-container { display: flex; }
+            
+            .page { padding: 15px; min-height: calc(100vh - 10px); border-radius: 12px; box-shadow: none; }
+            h1 { font-size: 1.6rem; }
+            h2 { font-size: 1.3rem; }
+			.p1-layout { justify-content: center; align-items: center; }
+            .subtitle { font-size: 0.85rem; margin-bottom: 10px; }
+
+			.p1-layout { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; flex: 1; }
+            
+            .steps-grid { grid-template-columns: 1fr; gap: 8px; }
+            .struct-grid { grid-template-columns: 1fr; gap: 10px; }
+            .p9-grid { grid-template-columns: 1fr; gap: 12px; }
+
+            /* LE REVOLUTIONNAIRE FIX POUR LA PAGE 5 SUR SMARTPHONE */
+            #page5 { padding-top: 0px; padding-left: 10px; padding-right: 10px; }
+            .p5-layout { flex-direction: column; gap: 10px; margin-top: 0; align-items: center; width: 100%; }
+            
+            /* Le graphique devient fixe (sticky) en haut de l'écran mobile */
+            .p5-chart-container { 
+                position: sticky; 
+                top: 0; 
+                z-index: 100; 
+                width: 100%; 
+                max-width: 230px; /* Taille compacte pour garder de l'espace */
+                padding: 5px;
+                background: white;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                border-radius: 0 0 12px;
+                border: 1px solid #cbd5e1;
+                margin-bottom: 5px;
+            }
+            
+            /* Les curseurs défilent parfaitement en dessous */
+            .p5-sliders { 
+                width: 100%; 
+                max-height: calc(100vh - 360px); /* S'adapte dynamiquement à la taille restante */
+                overflow-y: auto; 
+                padding-right: 0px;
+            }
+            .slider-group { padding: 8px 10px; }
+            .slider-group label { font-size: 0.8rem; }
+        }
+
+        /* RENDU PDF (A4 LANDSCAPE COMPLETEMENT ISOLE POUR NE PAS IMPACTER LE MOBILE) */
+        #pdf-export-root { display: none; width: 100%; max-width: 1040px; background: white; color: #1e293b; }
+        .pdf-page-container { width: 100%; height: 198mm; padding: 30px 40px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+        .pdf-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+        .pdf-header h1 { font-size: 22px; color: #0f172a; margin-bottom: 4px; }
+        .pdf-header p { color: #64748b; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pdf-meta { background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 15px; font-size: 12px; }
+        .pdf-section-title { font-size: 13px; font-weight: bold; color: #0f172a; margin-bottom: 10px; border-left: 5px solid var(--primary); padding-left: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pdf-p1-layout { display: flex; width: 100%; gap: 30px; align-items: flex-start; }
+        .pdf-p1-left { width: 42%; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .pdf-p1-right { width: 58%; display: flex; flex-direction: column; gap: 12px; }
+        .pdf-img-wrapper { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 10px; display: inline-block; width: 100%; max-width: 340px; }
+        .pdf-img-wrapper img { width: 100%; height: auto; display: block; }
+        .pdf-res-block { border-radius: 8px; padding: 12px 15px; border-left: 6px solid; font-size: 11.5px; line-height: 1.4; box-shadow: 0 2px 6px rgba(0,0,0,0.02); width: 100%; }
+        .pdf-res-block.success { border-left-color: #22c55e; background: #f0fdf4; }
+        .pdf-res-block.warning { border-left-color: #ef4444; background: #fef2f2; }
+        .pdf-res-block strong { font-size: 12.5px; display: block; margin-bottom: 4px; }
+        .pdf-res-text { color: #334155; margin-top: 2px; word-wrap: break-word; white-space: pre-wrap; }
+        .pdf-footer-tag { text-align: right; font-size: 10px; color: #94a3b8; font-weight: bold; border-top: 1px solid #e2e8f0; padding-top: 8px; width: 100%; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9.5px; table-layout: fixed; }
+        .pdf-table th { background: #f1f5f9; padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 8.5px; color: #475569; }
+        .pdf-table td { padding: 4.5px 8px; border: 1px solid #cbd5e1; vertical-align: middle; line-height: 1.3; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-arrow left" id="prevBtn" onclick="navigatePage(-1)"><i class="fa-solid fa-chevron-left"></i></div>
+    <div class="nav-arrow right" id="nextBtn" onclick="navigatePage(1)"><i class="fa-solid fa-chevron-right"></i></div>
+
+    <div id="main-application-wrapper" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        
+        <div id="page1" class="page active">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>NOTRE TOILE D'EQUIPE</span></div>
+            <div class="p1-layout">
+                <div class="p1-content">
+                    <span class="badge-bury">Lycée Notre-Dame de Bury</span>
+                    <h1>Atelier de fin d'année :<br>notre toile d'équipe !</h1>
+                    <p class="subtitle">Démarche collaborative et constructive en petits groupes pour évaluer l'année écoulée et guider les priorités de la rentrée prochaine.</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+                        <span style="color:var(--primary); font-weight:bold; font-size: 0.9rem;"><i class="fa-solid fa-circle-nodes"></i> Organisation</span>
+                        <span style="color:var(--purple); font-weight:bold; font-size: 0.9rem;"><i class="fa-solid fa-comments"></i> Communication</span>
+                        <span style="color:var(--orange); font-weight:bold; font-size: 0.9rem;"><i class="fa-solid fa-school-flag"></i> Cadre de travail</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob next" onclick="navigatePage(1)">Commencer <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="slide-footer"><span>Journée pédagogique du 12/06/26</span><span class="page-count">page 1/10</span></div>
+        </div>
+
+        <div id="page2" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>GUIDE D'ANIMATION</span></div>
+            <h2>Guide d'animation de l'atelier</h2>
+            <p class="subtitle">Objectif : évaluer l'année passée pour extraire des axes prioritaires à la rentrée.</p>
+            <div class="steps-grid">
+                <div class="step-card"><div class="step-num">01 <span class="step-time">2 min</span></div><h3>Le groupe</h3><p>Identifiez les 5 membres de votre équipe sur la page suivante.</p></div>
+                <div class="step-card"><div class="step-num">02 <span class="step-time">10 min</span></div><h3>La notation</h3><p>Evaluez chaque critère de 0 à 10 via les curseurs verticaux.</p></div>
+                <div class="step-card"><div class="step-num">03 <span class="step-time">10 min</span></div><h3>La justification</h3><p>Identifiez pour chaque item un levier (+) et un frein (-) (70 car. max).</p></div>
+                <div class="step-card"><div class="step-num">04 <span class="step-time">10 min</span></div><h3>La restitution</h3><p>Téléchargez votre fichier PDF final à transmettre à la direction.</p></div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Suivant <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="slide-footer"><span></span><span class="page-count">page 2/10</span></div>
+        </div>
+
+        <div id="page3" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>CONSTITUTION DE L'ÉQUIPE</span></div>
+            <h2>Composition du groupe</h2>
+            <p class="subtitle">Inscrivez les noms des 5 membres participant à cet atelier.</p>
+            <div class="group-container">
+                <div class="group-card">
+                    <div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" placeholder="Nom du membre 1" class="member-name"></div>
+                    <div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" placeholder="Nom du membre 2" class="member-name"></div>
+                    <div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" placeholder="Nom du membre 3" class="member-name"></div>
+                    <div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" placeholder="Nom du membre 4" class="member-name"></div>
+                    <div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" placeholder="Nom du membre 5" class="member-name"></div>
+                </div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Suivant <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="slide-footer"><span>Informations administratives</span><span class="page-count">page 3/10</span></div>
+        </div>
+
+        <div id="page4" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN d'ANNÉE</span><span>STRUCTURE DE LA GRILLE</span></div>
+            <h2>Structure de la grille d'évaluation</h2>
+            <p class="subtitle">15 critères d'analyse fine répartis en 3 grands axes d'établissement.</p>
+            <div class="struct-grid">
+                <div class="struct-card c1">
+                    <h3><i class="fa-solid fa-gear"></i> Organisation</h3>
+                    <ul><li>1. Org. générale du lycée</li><li>2. Calendrier & gestion DST</li><li>3. Anticipation sorties</li><li>4. Organisation du bac</li><li>5. Evénements & JPO</li></ul>
+                </div>
+                <div class="struct-card c2">
+                    <h3><i class="fa-solid fa-comments"></i> Communication</h3>
+                    <ul><li>6. Direction ⇄ Enseignants</li><li>7. Relations familles</li><li>8. Echanges élèves</li><li>9. Collaboration équipe</li><li>10. Aménagements (PAI...)</li></ul>
+                </div>
+                <div class="struct-card c3">
+                    <h3><i class="fa-solid fa-school"></i> Cadre de travail</h3>
+                    <ul><li>11. Salles travail / repos</li><li>12. Parc informatique</li><li>13. Vidéoprojecteurs</li><li>14. Photocopieuses</li><li>15. Salles de classes</li></ul>
+                </div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Ouvrir la toile <i class="fa-solid fa-circle-nodes"></i></button></div>
+            <div class="slide-footer"><span>Cadrage des thématiques</span><span class="page-count">page 4/10</span></div>
+        </div>
+
+        <div id="page5" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>NOTRE TOILE D'EQUIPE</span></div>
+            <h2>Génération de votre araignée</h2>
+            <p class="subtitle">Ajustez les curseurs ci-dessous. Le graphique reste visible en haut sur mobile !</p>
+            <div class="p5-layout">
+                <div class="p5-chart-container"><canvas id="radarChart"></canvas></div>
+                <div class="p5-sliders" id="sliders-container">
+                    
+                    <div class="slider-category-block b-org">
+                        <div class="slider-category-title"><i class="fa-solid fa-gear"></i> Axe A : Organisation</div>
+                        <div id="sliders-area-org"></div>
+                    </div>
+                    
+                    <div class="slider-category-block b-com">
+                        <div class="slider-category-title"><i class="fa-solid fa-comments"></i> Axe B : Communication</div>
+                        <div id="sliders-area-com"></div>
+                    </div>
+                    
+                    <div class="slider-category-block b-cad">
+                        <div class="slider-category-title"><i class="fa-solid fa-school"></i> Axe C : Cadre de travail</div>
+                        <div id="sliders-area-cad"></div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Justifier <i class="fa-solid fa-pen-to-square"></i></button></div>
+            <div class="slide-footer"><span>Outil interactif d'évaluation</span><span class="page-count">page 5/10</span></div>
+        </div>
+
+        <div id="page6" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>FICHE DE SYNTHESE</span></div>
+            <h2>Fiche de synthèse - Organisation</h2>
+            <p class="subtitle" style="color:var(--primary)">Thématique A : Organisation (70 car. max par case)</p>
+            <div class="table-responsive-wrapper">
+                <table class="table-synth"><thead id="thead-org"></thead><tbody id="tbody-org"></tbody></table>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Suivant <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="slide-footer"><span>Axe stratégique A</span><span class="page-count">page 6/10</span></div>
+        </div>
+
+        <div id="page7" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>FICHE DE SYNTHESE</span></div>
+            <h2>Fiche de synthèse - Communication</h2>
+            <p class="subtitle" style="color:var(--purple)">Thématique B : Communication (70 car. max par case)</p>
+            <div class="table-responsive-wrapper">
+                <table class="table-synth"><thead id="thead-com"></thead><tbody id="tbody-com"></tbody></table>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Suivant <i class="fa-solid fa-arrow-right"></i></button></div>
+            <div class="slide-footer"><span>Axe stratégique B</span><span class="page-count">page 7/10</span></div>
+        </div>
+
+        <div id="page8" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>FICHE DE SYNTHESE</span></div>
+            <h2>Fiche de synthèse - Cadre de travail</h2>
+            <p class="subtitle" style="color:var(--orange)">Thématique C : Cadre de travail (70 car. max par case)</p>
+            <div class="table-responsive-wrapper">
+                <table class="table-synth"><thead id="thead-cad"></thead><tbody id="tbody-cad"></tbody></table>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Bilan global <i class="fa-solid fa-star"></i></button></div>
+            <div class="slide-footer"><span>Axe stratégique C</span><span class="page-count">page 8/10</span></div>
+        </div>
+
+        <div id="page9" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>RESTITUTION GLOBALE</span></div>
+            <div class="p9-content-wrapper">
+                <h2>Fiche de synthèse générale du groupe</h2>
+                <p class="subtitle">Dégagez un consensus sur les points clés de votre diagnostic.</p>
+                <div class="p9-grid">
+                    <div class="p9-card success">
+                        <h3>🟢 Nos 2 plus grandes réussites</h3>
+                        <p style="font-size: 0.8rem; color:#64748b;">Identifier 2 pics de votre toile (250 car. max) :</p>
+                        <textarea id="p8-reussite1" maxlength="250" placeholder="Réussite 1..." oninput="updateCount(this, 'c-r1')"></textarea>
+                        <div class="char-counter" id="c-r1">0 / 250 caractères</div>
+                        <textarea id="p8-reussite2" maxlength="250" placeholder="Réussite 2..." oninput="updateCount(this, 'c-r2')"></textarea>
+                        <div class="char-counter" id="c-r2">0 / 250 caractères</div>
+                    </div>
+                    <div class="p9-card warning">
+                        <h3>🔴 Nos 2 chantiers prioritaires</h3>
+                        <p style="font-size: 0.8rem; color:#64748b;">Identifier 2 creux de votre toile (250 car. max) :</p>
+                        <textarea id="p8-chantier1" maxlength="250" placeholder="Axe Prioritaire 1..." oninput="updateCount(this, 'c-c1')"></textarea>
+                        <div class="char-counter" id="c-c1">0 / 250 caractères</div>
+                        <textarea id="p8-chantier2" maxlength="250" placeholder="Axe Prioritaire 2..." oninput="updateCount(this, 'c-c2')"></textarea>
+                        <div class="char-counter" id="c-c2">0 / 250 caractères</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button><button class="btn-nav-mob next" onclick="navigatePage(1)">Terminer <i class="fa-solid fa-check"></i></button></div>
+            <div class="slide-footer"><span>Synthèse transversale</span><span class="page-count">page 9/10</span></div>
+        </div>
+
+        <div id="page10" class="page">
+            <div class="slide-header"><span>REUNION PEDAGOGIQUE • FIN D'ANNÉE</span><span>TRANSMISSION</span></div>
+            <div class="final-box">
+                <h1>Téléchargement des résultats</h1>
+                <p class="subtitle">Cliquez ci-dessous pour générer votre fichier PDF.<br>Vous devrez l'envoyer ensuite à : <br><b style="color: var(--primary); font-size: 1.05rem;">mpaugam@bury-rosaire.fr</b></p>
+                <button id="submit-btn" onclick="handleFormSubmission()" class="btn-send">
+                    <i class="fa-solid fa-file-pdf"></i> Générer et Télécharger le PDF (2 Pages)
+                </button>
+                <div id="status-message" class="success-msg"></div>
+            </div>
+            <div class="mobile-nav-container"><button class="btn-nav-mob" onclick="navigatePage(-1)"><i class="fa-solid fa-arrow-left"></i> Retour</button></div>
+            <div class="slide-footer"><span>Fin de l'atelier collaboratif</span><span class="page-count">page 10/10</span></div>
+        </div>
+    </div>
+
+    <div id="pdf-export-root">
+        <div class="pdf-page-container">
+            <div>
+                <div class="pdf-header">
+                    <h1>Synthèse de l'Atelier Pédagogique — Notre Toile d'Équipe</h1>
+                    <p>Lycée Notre-Dame de Bury — Réunion de Fin d'Année</p>
+                </div>
+                <div class="pdf-meta"><strong>Membres de l'équipe de travail :</strong> <span id="pdf-members-display">Non renseigné</span></div>
+                <div class="pdf-p1-layout">
+                    <div class="pdf-p1-left">
+                        <div class="pdf-section-title" style="text-align: left; width: 100%;">1. Cartographie Graphique (Radar)</div>
+                        <div class="pdf-img-wrapper"><img id="pdf-radar-image-placeholder" src="" alt="Toile"></div>
+                    </div>
+                    <div class="pdf-p1-right">
+                        <div class="pdf-section-title">2. Synthèse Stratégique du Groupe</div>
+                        <div class="pdf-res-block success">
+                            <strong>🟢 Nos 2 réussites majeures :</strong>
+                            <div class="pdf-res-text" id="pdf-txt-r1"></div>
+                            <div class="pdf-res-text" style="margin-top:5px;" id="pdf-txt-r2"></div>
+                        </div>
+                        <div class="pdf-res-block warning">
+                            <strong>🔴 Nos 2 axes de chantiers prioritaires :</strong>
+                            <div class="pdf-res-text" id="pdf-txt-c1"></div>
+                            <div class="pdf-res-text" style="margin-top:5px;" id="pdf-txt-c2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pdf-footer-tag">Dossier d'Équipe — Page 1 / 2</div>
+        </div>
+        <div style="page-break-before: always;"></div>
+        <div class="pdf-page-container">
+            <div>
+                <div class="pdf-section-title" style="border-left-color: var(--purple); font-size: 14px; margin-bottom: 12px;">3. Évaluations détaillées & Justifications par Critère</div>
+                <div id="pdf-tables-content"></div>
+            </div>
+            <div class="pdf-footer-tag">Dossier d'Équipe — Page 2 / 2</div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 10;
+
+        const dataCriteria = [
+            { id: 1, label: "1. Org. générale du lycée", cat: "org", val: 5, pos: "", neg: "" },
+            { id: 2, label: "2. Calendrier et gestion des DST", cat: "org", val: 5, pos: "", neg: "" },
+            { id: 3, label: "3. Anticipation/impact des sorties", cat: "org", val: 5, pos: "", neg: "" },
+            { id: 4, label: "4. Organisation du baccalauréat", cat: "org", val: 5, pos: "", neg: "" },
+            { id: 5, label: "5. Evénements & temps forts (JPO...)", cat: "org", val: 5, pos: "", neg: "" },
+            { id: 6, label: "6. Direction ⇄ Enseignants", cat: "com", val: 5, pos: "", neg: "" },
+            { id: 7, label: "7. Relations avec les familles", cat: "com", val: 5, pos: "", neg: "" },
+            { id: 8, label: "8. Echanges avec les élèves", cat: "com", val: 5, pos: "", neg: "" },
+            { id: 9, label: "9. Collaboration en équipe", cat: "com", val: 5, pos: "", neg: "" },
+            { id: 10, label: "10. Aménagements d'élèves (PAI...)", cat: "com", val: 5, pos: "", neg: "" },
+            { id: 11, label: "11. Salle de travail et salle de repos", cat: "cad", val: 5, pos: "", neg: "" },
+            { id: 12, label: "12. Parc informatique", cat: "cad", val: 5, pos: "", neg: "" },
+            { id: 13, label: "13. Vidéoprojecteurs", cat: "cad", val: 5, pos: "", neg: "" },
+            { id: 14, label: "14. Photocopieuses", cat: "cad", val: 5, pos: "", neg: "" },
+            { id: 15, label: "15. Salles de classes", cat: "cad", val: 5, pos: "", neg: "" }
+        ];
+
+        let mainChart;
+
+        function navigatePage(direction) {
+            const next = currentPage + direction;
+            if (next >= 1 && next <= totalPages) {
+                document.getElementById(`page${currentPage}`).classList.remove('active');
+                currentPage = next;
+                document.getElementById(`page${currentPage}`).classList.add('active');
+                updateArrowState();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if(currentPage === 5 && mainChart) mainChart.update();
+            }
+        }
+
+        function updateArrowState() {
+            document.getElementById('prevBtn').classList.toggle('disabled', currentPage === 1);
+            document.getElementById('nextBtn').classList.toggle('disabled', currentPage === totalPages);
+        }
+
+        function updateCount(textarea, counterId) {
+            document.getElementById(counterId).innerText = textarea.value.length + " / 250 caractères";
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') navigatePage(1);
+            if (e.key === 'ArrowLeft') navigatePage(-1);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSliders();
+            initTables();
+            initChart();
+            updateArrowState();
+        });
+
+        function initSliders() {
+            dataCriteria.forEach(item => {
+                const targetArea = document.getElementById(`sliders-area-${item.cat}`);
+                if (!targetArea) return;
+
+                const group = document.createElement('div');
+                group.className = 'slider-group';
+                group.innerHTML = `
+                    <div class="slider-meta">
+                        <label title="${item.label}">${item.label}</label>
+                    </div>
+                    <div class="slider-controls-row">
+                        <input type="range" min="0" max="10" value="${item.val}" data-id="${item.id}" oninput="sync(this)">
+                        <span class="val-indicator" id="ind-${item.id}">${item.val}</span>
+                    </div>
+                `;
+                targetArea.appendChild(group);
+            });
+        }
+
+        function initTables() {
+            const header = `<tr><th width="32%">Critère</th><th width="14%">Note</th><th width="27%">Levier (+)</th><th width="27%">Frein (-)</th></tr>`;
+            ['org', 'com', 'cad'].forEach(cat => {
+                document.getElementById(`thead-${cat}`).innerHTML = header;
+                const tbody = document.getElementById(`tbody-${cat}`);
+                dataCriteria.filter(i => i.cat === cat).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight:600; font-size:0.8rem;">${item.label}</td>
+                        <td><input type="number" min="0" max="10" value="${item.val}" data-id="${item.id}" oninput="sync(this)"></td>
+                        <td><textarea data-id="${item.id}" data-type="pos" maxlength="70" placeholder="Max 70..." oninput="syncText(this)"></textarea></td>
+                        <td><textarea data-id="${item.id}" data-type="neg" maxlength="70" placeholder="Max 70..." oninput="syncText(this)"></textarea></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            const pointColors = dataCriteria.map(i => i.cat === 'org' ? '#0284c7' : i.cat === 'com' ? '#7c3aed' : '#ea580c');
+            
+            mainChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: dataCriteria.map(i => i.id),
+                    datasets: [{
+                        data: dataCriteria.map(i => i.val),
+                        backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                        borderColor: '#0284c7',
+                        borderWidth: 2,
+                        pointBackgroundColor: pointColors,
+                        pointBorderColor: '#fff',
+                        pointRadius: 4
+                    }]
+                },
+                options: { 
+                    scales: { r: { min: 0, max: 10, ticks: { display: false } } }, 
+                    plugins: { legend: { display: false } },
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
+
+        function sync(el) {
+            const id = parseInt(el.dataset.id);
+            let val = parseInt(el.value) || 0;
+            if(val > 10) val = 10;
+            if(val < 0) val = 0;
+            el.value = val;
+
+            dataCriteria.find(i => i.id === id).val = val;
+
+            document.querySelectorAll(`input[data-id="${id}"]`).forEach(input => { if(input !== el) input.value = val; });
+            const ind = document.getElementById(`ind-${id}`);
+            if(ind) ind.innerText = val;
+            
+            if (mainChart) {
+                mainChart.data.datasets[0].data = dataCriteria.map(i => i.val);
+                mainChart.update('none');
+            }
+        }
+
+        function syncText(ta) {
+            const id = parseInt(ta.dataset.id);
+            dataCriteria.find(i => i.id === id)[ta.dataset.type === 'pos' ? 'pos' : 'neg'] = ta.value;
+        }
+
+        function handleFormSubmission() {
+            const submitBtn = document.getElementById('submit-btn');
+            const statusMsg = document.getElementById('status-message');
+            const element = document.getElementById('pdf-export-root');
+            const mainApp = document.getElementById('main-application-wrapper');
+            
+            submitBtn.disabled = true;
+            statusMsg.style.display = 'none';
+
+            document.getElementById('pdf-radar-image-placeholder').src = mainChart.toBase64Image();
+            const names = Array.from(document.querySelectorAll('.member-name')).map(i => i.value.trim()).filter(n => n !== "").join(' — ');
+            document.getElementById('pdf-members-display').innerText = names || "Non renseigné";
+
+            document.getElementById('pdf-txt-r1').innerHTML = `<b>1.</b> ${document.getElementById('p8-reussite1').value.trim() || 'Non renseigné.'}`;
+            document.getElementById('pdf-txt-r2').innerHTML = `<b>2.</b> ${document.getElementById('p8-reussite2').value.trim() || 'Non renseigné.'}`;
+            document.getElementById('pdf-txt-c1').innerHTML = `<b>1.</b> ${document.getElementById('p8-chantier1').value.trim() || 'Non renseigné.'}`;
+            document.getElementById('pdf-txt-c2').innerHTML = `<b>2.</b> ${document.getElementById('p8-chantier2').value.trim() || 'Non renseigné.'}`;
+
+            let htmlTables = '';
+            ['org', 'com', 'cad'].forEach(cat => {
+                let catLabel = cat === 'org' ? 'A. Axe : Organisation' : cat === 'com' ? 'B. Axe : Communication' : 'C. Axe : Cadre de travail';
+                htmlTables += `<table class="pdf-table"><thead><tr><th style="width:40%; font-size:9px;">${catLabel}</th><th style="width:12%; text-align:center; font-size:9px;">Note</th><th style="width:24%; font-size:9px;">Levier (+)</th><th style="width:24%; font-size:9px;">Frein (-)</th></tr></thead><tbody>`;
+                dataCriteria.filter(i => i.cat === cat).forEach(item => {
+                    let shortLabel = item.label.includes('.') ? item.label.substring(item.label.indexOf('.') + 2) : item.label; 
+                    htmlTables += `<tr><td style="font-weight:600; font-size:9px; color:#0f172a;">${item.id}. ${shortLabel}</td><td style="text-align:center; background:#f8fafc; font-weight:bold; color:var(--primary); font-size:10px;">${item.val} / 10</td><td style="color:#334155; font-size:9px;">${item.pos.trim() || '-'}</td><td style="color:#334155; font-size:9px;">${item.neg.trim() || '-'}</td></tr>`;
+                });
+                htmlTables += `</tbody></table>`;
+            });
+            document.getElementById('pdf-tables-content').innerHTML = htmlTables;
+
+            mainApp.style.display = 'none';
+            element.style.display = 'block';
+
+            const opt = {
+                margin: 0, filename: 'Synthese_Atelier_Pedagogique_Bury.pdf', image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(function() {
+                element.style.display = 'none'; mainApp.style.display = 'flex'; submitBtn.disabled = false;
+                statusMsg.style.display = 'block'; statusMsg.innerHTML = "<i class='fa-solid fa-circle-check'></i> <b>Votre fichier PDF a été téléchargé avec succès</b>";
+            }).catch(function(err) {
+                console.error(err); element.style.display = 'none'; mainApp.style.display = 'flex'; submitBtn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
